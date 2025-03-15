@@ -1,0 +1,8 @@
+tensorflow
+tensorflow-lite
+pandas
+numpy
+scikit-learn
+flask
+boto3
+scapy
