@@ -1,0 +1,8 @@
+using sysbus
+mach create "tinyml_esp32"
+
+machine LoadPlatformDescription @platforms/cpus/esp32.repl
+sysbus LoadELF @firmware/firmware.elf
+
+showAnalyzer sysbus.uart0
+start
