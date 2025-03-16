@@ -1,9 +1,22 @@
 # Test the Model Using the Remaining 30% of the Dataset
 # Load the TensorFlow Lite runtime
 import tensorflow.lite as tflite
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),'..')))
+from sklearn.metrics import accuracy_score
+from sklearn.model_selection import train_test_split
+from common.preprocessing import load_and_preprocess_data
+
+
+# Load data
+X, y, _ = load_and_preprocess_data()
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
 
 # Load the trained TinyML model
-interpreter = tflite.Interpreter(model_path="model_ton_iot.tflite")
+# interpreter = tflite.Interpreter(model_path="model_ton_iot.tflite")
+interpreter = tflite.Interpreter(model_path="./models/cnn_tinyml_model.tflite")
 interpreter.allocate_tensors()
 
 # Get input/output tensor indices
