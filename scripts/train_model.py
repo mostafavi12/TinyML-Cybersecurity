@@ -104,4 +104,4 @@ tflite_model = converter.convert()
 with open("./models/model_ton_iot.tflite", "wb") as f:
     f.write(tflite_model)
 
-print("[✓] TinyML model training and conversion completed!")
+print("TinyML model training and conversion completed!")

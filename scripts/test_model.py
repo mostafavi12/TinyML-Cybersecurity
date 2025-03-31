@@ -28,7 +28,7 @@ output_details = interpreter.get_output_details()
 correct_predictions = 0
 total_predictions = len(X_test)
 
-print("[*] Testing TinyML model with the remaining 30% of TON_IoT dataset...")
+print("Testing TinyML model with the remaining 30% of TON_IoT dataset...")
 
 for i in range(len(X_test)):
     input_data = np.array([X_test[i]], dtype=np.float32)
@@ -43,4 +43,4 @@ for i in range(len(X_test)):
         correct_predictions += 1
 
 accuracy = correct_predictions / total_predictions * 100
-print(f"[✓] Model Accuracy on Test Data: {accuracy:.2f}%") 
+print(f"Model Accuracy on Test Data: {accuracy:.2f}%") 

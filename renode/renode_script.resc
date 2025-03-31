@@ -1,8 +1,10 @@
-using sysbus
-mach create "tinyml_esp32"
+# renode_script.resc
 
-machine LoadPlatformDescription @platforms/cpus/esp32.repl
-sysbus LoadELF @firmware/firmware.elf
+using sysbus
+mach create "tinyml_riscv"
+
+machine LoadPlatformDescription @/home/ahmad/projects/TinyML-Cybersecurity/renode/riscv_virt.repl
+sysbus LoadELF @/home/ahmad/projects/TinyML-Cybersecurity/renode/firmware/firmware.elf
 
 showAnalyzer sysbus.uart0
 start

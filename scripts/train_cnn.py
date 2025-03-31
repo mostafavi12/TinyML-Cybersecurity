@@ -1,11 +1,10 @@
 import numpy as np
 import tensorflow as tf
 import joblib
-import sys
-import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),'..')))
+import sys, os
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, classification_report
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),'..')))
 from common.preprocessing import load_and_preprocess_data
 
 print("[*] Loading TON_IoT dataset...")
@@ -17,30 +16,31 @@ print("[*] Sample data:\n", X[:5])
 # Reshape input for CNN: [samples, features, 1]
 X = np.expand_dims(X, axis=-1)
 
-# Split into train/test
+# Split data
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
 
 print("[*] Training CNN model...")
 model = tf.keras.Sequential([
     tf.keras.layers.Input(shape=(X.shape[1], 1)),
-    tf.keras.layers.Conv1D(32, kernel_size=3, activation='relu'),
+    tf.keras.layers.Conv1D(32, 3, activation='relu'),
     tf.keras.layers.MaxPooling1D(pool_size=2),
     tf.keras.layers.Flatten(),
     tf.keras.layers.Dense(64, activation='relu'),
-    tf.keras.layers.Dense(1, activation='sigmoid')
+    tf.keras.layers.Dense(10, activation='softmax')  # 10 attack types
 ])
 
-model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
 
 model.fit(X_train, y_train, epochs=10, batch_size=32, validation_split=0.2)
 
 print("[*] Evaluating CNN on test set...")
-y_pred = model.predict(X_test).flatten()
-y_pred_binary = (y_pred >= 0.5).astype(int)
-accuracy = accuracy_score(y_test, y_pred_binary)
+y_pred_probs = model.predict(X_test)
+y_pred = np.argmax(y_pred_probs, axis=1)
+accuracy = accuracy_score(y_test, y_pred)
 print(f"CNN Test Accuracy: {accuracy:.4f}")
+print("\n[*] Classification Report:\n", classification_report(y_test, y_pred))
 
-# Save the full model
+# Save model
 model.save("models/cnn_model.h5")
 
 # Convert to TensorFlow Lite

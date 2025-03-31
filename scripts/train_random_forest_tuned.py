@@ -30,13 +30,13 @@ grid_search = GridSearchCV(RandomForestClassifier(random_state=42), param_grid, 
 grid_search.fit(X_train, y_train)
 
 best_rf = grid_search.best_estimator_
-print(f"[✓] Best Parameters: {grid_search.best_params_}")
+print(f"Best Parameters: {grid_search.best_params_}")
 
 print("[*] Evaluating Tuned Random Forest model...")
 y_pred = best_rf.predict(X_test)
 accuracy = accuracy_score(y_test, y_pred)
-print(f"[✓] Tuned RandomForest Test Accuracy: {accuracy:.4f}")
+print(f"Tuned RandomForest Test Accuracy: {accuracy:.4f}")
 
 # Save the best model
 joblib.dump(best_rf, "models/random_forest_tuned.pkl")
-print("[✓] Tuned RandomForest model saved at models/random_forest_tuned.pkl")
+print("Tuned RandomForest model saved at models/random_forest_tuned.pkl")

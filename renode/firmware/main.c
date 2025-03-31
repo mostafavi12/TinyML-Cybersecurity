@@ -1,32 +1,17 @@
-#include <stdio.h>
-#include "tensorflow/lite/c/c_api.h"
+// main.c
+volatile unsigned char *uart = (unsigned char *)0x10000000;
+int main();
+
+void _start() {
+    main();
+    while (1); // trap CPU if main returns
+}
 
 int main() {
-    printf("Loading TinyML Model...\n");
-
-    TfLiteModel* model = TfLiteModelCreateFromFile("cnn_model.tflite");
-    if (!model) {
-        printf("Failed to load TFLite model.\n");
-        return 1;
+    const char *msg = "Hello, UART from RISC-V!\n";
+    while (*msg) {
+        uart[0] = *msg++;
     }
 
-    TfLiteInterpreterOptions* options = TfLiteInterpreterOptionsCreate();
-    TfLiteInterpreter* interpreter = TfLiteInterpreterCreate(model, options);
-    TfLiteInterpreterAllocateTensors(interpreter);
-
-    TfLiteTensor* input_tensor = TfLiteInterpreterGetInputTensor(interpreter, 0);
-    float input_data[6] = {0.1, 0.2, 0.3, 0.4, 0.5, 0.6};
-    memcpy(input_tensor->data.f, input_data, sizeof(input_data));
-
-    TfLiteInterpreterInvoke(interpreter);
-    TfLiteTensor* output_tensor = TfLiteInterpreterGetOutputTensor(interpreter, 0);
-    float result = output_tensor->data.f[0];
-
-    printf("Inference Result: %f\n", result);
-
-    TfLiteInterpreterDelete(interpreter);
-    TfLiteInterpreterOptionsDelete(options);
-    TfLiteModelDelete(model);
-
-    return 0;
+    while (1);  // Loop forever
 }

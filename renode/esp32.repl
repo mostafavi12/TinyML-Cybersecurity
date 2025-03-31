@@ -1,6 +1,0 @@
-using sysbus
-cpu: CPU.ESP32 @ sysbus 0x0
-sysbus:
-    uart0: UART @ sysbus 0x3F400000
-    timer: Timer @ sysbus 0x3F400600
-    memory: Memory.MappedMemory @ sysbus 0x3F400000
