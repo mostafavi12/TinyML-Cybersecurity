@@ -1,17 +1,25 @@
-// main.c
-volatile unsigned char *uart = (unsigned char *)0x10000000;
-int main();
+volatile unsigned int *uart = (unsigned int *)0x10000000;
+#define UART_THR (uart + 0)
+#define UART_LSR (uart + 5)
+#define UART_LSR_THRE 0x20
 
-void _start() {
-    main();
-    while (1); // trap CPU if main returns
+void uart_putc(char c) {
+    while (!(UART_LSR[0] & UART_LSR_THRE));
+    UART_THR[0] = c;
+}
+
+void uart_puts(const char *s) {
+    while (*s) uart_putc(*s++);
 }
 
 int main() {
-    const char *msg = "Hello, UART from RISC-V!\n";
-    while (*msg) {
-        uart[0] = *msg++;
-    }
+    uart_puts("Hello TinyML!\n");
+    while (1); // loop forever
 
-    while (1);  // Loop forever
+    return 0;
+}
+
+void _start(){
+    main();
+    while(1);
 }
