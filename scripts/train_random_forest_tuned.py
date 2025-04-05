@@ -8,6 +8,10 @@ from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.metrics import accuracy_score
 from common.preprocessing import load_and_preprocess_data
 
+from sklearn.metrics import confusion_matrix
+from common.utils import plot_confusion_matrix
+from common.utils import save_metric
+
 print("[*] Loading TON_IoT dataset...")
 X, y, features = load_and_preprocess_data("./data/TON_IoT/Train_Test_datasets/Train_Test_Network_dataset/train_test_network.csv")
 
@@ -37,6 +41,14 @@ y_pred = best_rf.predict(X_test)
 accuracy = accuracy_score(y_test, y_pred)
 print(f"Tuned RandomForest Test Accuracy: {accuracy:.4f}")
 
+# Confusion Matrix
+# Assuming y_test and y_pred are defined
+cm = confusion_matrix(y_test, y_pred)
+plot_confusion_matrix(cm, class_names=["Normal", "Anomaly"], filename="visualizations/confusion_matrix_rfTuned.png")
+
 # Save the best model
 joblib.dump(best_rf, "models/random_forest_tuned.pkl")
 print("Tuned RandomForest model saved at models/random_forest_tuned.pkl")
+
+# Save the report in a json file
+save_metric("Tuned RF", accuracy)

@@ -7,6 +7,10 @@ from sklearn.metrics import accuracy_score, classification_report
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),'..')))
 from common.preprocessing import load_and_preprocess_data
 
+from sklearn.metrics import confusion_matrix
+from common.utils import plot_confusion_matrix
+from common.utils import save_metric
+
 print("[*] Loading TON_IoT dataset...")
 X, y, features = load_and_preprocess_data("./data/TON_IoT/Train_Test_datasets/Train_Test_Network_dataset/train_test_network.csv")
 
@@ -40,6 +44,12 @@ accuracy = accuracy_score(y_test, y_pred)
 print(f"CNN Test Accuracy: {accuracy:.4f}")
 print("\n[*] Classification Report:\n", classification_report(y_test, y_pred))
 
+
+# Confusion Matrix
+# Assuming y_test and y_pred are defined
+cm = confusion_matrix(y_test, y_pred)
+plot_confusion_matrix(cm, class_names=["Normal", "Anomaly"], filename="visualizations/confusion_matrix_CNN.png")
+
 # Save model
 model.save("models/cnn_model.h5")
 
@@ -52,3 +62,6 @@ with open("models/cnn_model.tflite", "wb") as f:
     f.write(tflite_model)
 
 print("CNN Model training and conversion complete.")
+
+# Save the report in a json file
+save_metric("CNN", accuracy)
