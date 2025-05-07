@@ -85,7 +85,7 @@ accuracies = [metrics[m]["accuracy"] for m in models]
 os.makedirs("visualizations", exist_ok=True)
 
 plt.figure(figsize=(8, 5))
-plt.bar(models, accuracies, color='mediumseagreen')
+bars = plt.bar(models, accuracies, color='mediumseagreen')
 plt.title("Model Accuracy Comparison")
 plt.ylabel("Accuracy")
 plt.ylim(0, 1.0)

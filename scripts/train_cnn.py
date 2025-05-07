@@ -1,3 +1,4 @@
+import logging
 import numpy as np
 import tensorflow as tf
 import joblib
@@ -11,11 +12,19 @@ from sklearn.metrics import confusion_matrix
 from common.utils import plot_confusion_matrix
 from common.utils import save_metric
 
-print("[*] Loading TON_IoT dataset...")
+from common.utils import setup_logging
+setup_logging("CNN.log")
+
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
+BASE_DIR = os.path.dirname(__file__)
+VIS_DIR = os.path.join(BASE_DIR, "visualizations")
+os.makedirs(VIS_DIR, exist_ok=True)
+
+logging.info("[*] Loading TON_IoT dataset...")
 X, y, features = load_and_preprocess_data("./data/TON_IoT/Train_Test_datasets/Train_Test_Network_dataset/train_test_network.csv")
 
-print("[*] Feature headers:", features)
-print("[*] Sample data:\n", X[:5])
+logging.info("[*] Feature headers:", features)
+logging.info("[*] Sample data:\n", X[:5])
 
 # Reshape input for CNN: [samples, features, 1]
 X = np.expand_dims(X, axis=-1)
@@ -23,7 +32,7 @@ X = np.expand_dims(X, axis=-1)
 # Split data
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
 
-print("[*] Training CNN model...")
+logging.info("[*] Training CNN model...")
 model = tf.keras.Sequential([
     tf.keras.layers.Input(shape=(X.shape[1], 1)),
     tf.keras.layers.Conv1D(32, 3, activation='relu'),
@@ -37,31 +46,33 @@ model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=
 
 model.fit(X_train, y_train, epochs=10, batch_size=32, validation_split=0.2)
 
-print("[*] Evaluating CNN on test set...")
+logging.info("[*] Evaluating CNN on test set...")
 y_pred_probs = model.predict(X_test)
 y_pred = np.argmax(y_pred_probs, axis=1)
 accuracy = accuracy_score(y_test, y_pred)
-print(f"CNN Test Accuracy: {accuracy:.4f}")
-print("\n[*] Classification Report:\n", classification_report(y_test, y_pred))
+logging.info(f"CNN Test Accuracy: {accuracy:.4f}")
 
+# Classification Report
+logging.info("\nClassification Report:")
+logging.info(classification_report(y_test, y_pred, zero_division=0))
 
 # Confusion Matrix
 # Assuming y_test and y_pred are defined
 cm = confusion_matrix(y_test, y_pred)
-plot_confusion_matrix(cm, class_names=["Normal", "Anomaly"], filename="visualizations/confusion_matrix_CNN.png")
+plot_confusion_matrix(cm, class_names=["Normal", "Anomaly"], filename=os.path.join(VIS_DIR, "confusion_matrix_CNN.png"))
 
 # Save model
-model.save("models/cnn_model.h5")
+model.save("models/cnn_model.keras")
 
 # Convert to TensorFlow Lite
-print("[*] Converting to TensorFlow Lite...")
+logging.info("[*] Converting to TensorFlow Lite...")
 converter = tf.lite.TFLiteConverter.from_keras_model(model)
 tflite_model = converter.convert()
 
 with open("models/cnn_model.tflite", "wb") as f:
     f.write(tflite_model)
 
-print("CNN Model training and conversion complete.")
+logging.info("CNN Model training and conversion complete.")
 
 # Save the report in a json file
 save_metric("CNN", accuracy)
