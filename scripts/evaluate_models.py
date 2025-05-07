@@ -10,7 +10,7 @@ import json
 import matplotlib.pyplot as plt
 
 print("Loading TON_IoT dataset...")
-X, y, features = load_and_preprocess_data("./data/TON_IoT/Train_Test_datasets/Train_Test_Network_dataset/train_test_network.csv")
+X, y, features, label_encoder = load_and_preprocess_data("./data/TON_IoT/Train_Test_datasets/Train_Test_Network_dataset/train_test_network.csv")
 
 print("Feature headers:", features)
 print("Sample data:")

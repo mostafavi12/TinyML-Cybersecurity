@@ -3,25 +3,25 @@ import numpy as np
 import tensorflow as tf
 import joblib
 import sys, os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),'..')))
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, classification_report
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),'..')))
 from common.preprocessing import load_and_preprocess_data
-
 from sklearn.metrics import confusion_matrix
 from common.utils import plot_confusion_matrix
 from common.utils import save_metric
-
 from common.utils import setup_logging
-setup_logging("CNN.log")
 
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
-BASE_DIR = os.path.dirname(__file__)
-VIS_DIR = os.path.join(BASE_DIR, "visualizations")
-os.makedirs(VIS_DIR, exist_ok=True)
+from sklearn.preprocessing import LabelEncoder
+
+setup_logging("CNN")
+
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "1"
+os.environ["TF_FORCE_CONSOLE_STDOUT"] = "1"
+os.environ['TERM'] = 'dumb'
 
 logging.info("[*] Loading TON_IoT dataset...")
-X, y, features = load_and_preprocess_data("./data/TON_IoT/Train_Test_datasets/Train_Test_Network_dataset/train_test_network.csv")
+X, y, features, label_encoder = load_and_preprocess_data("./data/TON_IoT/Train_Test_datasets/Train_Test_Network_dataset/train_test_network.csv")
 
 logging.info("[*] Feature headers: %s", features)
 logging.info("[*] Sample data:\n%s", X[:5])
@@ -44,7 +44,7 @@ model = tf.keras.Sequential([
 
 model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
 
-model.fit(X_train, y_train, epochs=10, batch_size=32, validation_split=0.2)
+model.fit(X_train, y_train, epochs=10, batch_size=32, validation_split=0.2, verbose=2)
 
 logging.info("[*] Evaluating CNN on test set...")
 y_pred_probs = model.predict(X_test)
@@ -57,9 +57,11 @@ logging.info("\nClassification Report:")
 logging.info(classification_report(y_test, y_pred, zero_division=0))
 
 # Confusion Matrix
-# Assuming y_test and y_pred are defined
 cm = confusion_matrix(y_test, y_pred)
-plot_confusion_matrix(cm, class_names=["Normal", "Anomaly"], filename=os.path.join(VIS_DIR, "confusion_matrix_CNN.png"))
+class_names = label_encoder.classes_
+
+#plot_confusion_matrix(cm, class_names=["Normal", "Anomaly"], filename="confusion_matrix_CNN.png")
+plot_confusion_matrix(cm, class_names, filename="confusion_matrix_CNN.png")
 
 # Save model
 model.save("models/cnn_model.keras")

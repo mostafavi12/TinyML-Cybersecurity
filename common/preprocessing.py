@@ -41,4 +41,4 @@ def load_and_preprocess_data(file_path):
     print("\n[*] Final Input Shape:", X.shape)
     print("[*] Final Labels Shape:", y.shape)
 
-    return X, y, features
+    return X, y, features, le

@@ -14,15 +14,14 @@ from common.utils import plot_confusion_matrix
 from common.utils import save_metric
 
 from common.utils import setup_logging
-setup_logging("RandomForest.log")
 
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
-BASE_DIR = os.path.dirname(__file__)
-VIS_DIR = os.path.join(BASE_DIR, "visualizations")
-os.makedirs(VIS_DIR, exist_ok=True)
+setup_logging("RandomForest")
+
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "1"
+os.environ['TERM'] = 'dumb'
 
 logging.info("[*] Loading TON_IoT dataset...")
-X, y, features = load_and_preprocess_data("./data/TON_IoT/Train_Test_datasets/Train_Test_Network_dataset/train_test_network.csv")
+X, y, features, label_encoder = load_and_preprocess_data("./data/TON_IoT/Train_Test_datasets/Train_Test_Network_dataset/train_test_network.csv")
 
 logging.info("[*] Feature headers:%s", features)
 logging.info("[*] Sample data:\n%s", X[:5])
@@ -57,7 +56,11 @@ logging.info(classification_report(y_test, y_pred, zero_division=0))
 # Confusion Matrix
 # Assuming y_test and y_pred are defined
 cm = confusion_matrix(y_test, y_pred)
-plot_confusion_matrix(cm, class_names=["Normal", "Anomaly"], filename=os.path.join(VIS_DIR, "confusion_matrix_rf.png"))
+# Confusion Matrix
+cm = confusion_matrix(y_test, y_pred)
+class_names = label_encoder.classes_
+
+plot_confusion_matrix(cm, class_names, filename="confusion_matrix_rf.png")
 
 # Save the best model
 joblib.dump(best_rf, "models/random_forest.pkl")
