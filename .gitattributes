@@ -1,0 +1,29 @@
+# Auto-detect text files and normalize line endings to LF
+* text=auto
+
+# Enforce LF for Unix-style scripts and source code
+*.sh     text eol=lf
+*.py     text eol=lf
+*.js     text eol=lf
+*.ts     text eol=lf
+*.jsx    text eol=lf
+*.tsx    text eol=lf
+*.c      text eol=lf
+*.cpp    text eol=lf
+*.h      text eol=lf
+*.java   text eol=lf
+*.rb     text eol=lf
+*.go     text eol=lf
+
+# Enforce CRLF for Windows-specific files
+*.bat    text eol=crlf
+*.cmd    text eol=crlf
+
+# Binary files (no line-ending conversion)
+*.png    binary
+*.jpg    binary
+*.jpeg   binary
+*.gif    binary
+*.pdf    binary
+*.zip    binary
+*.exe    binary
