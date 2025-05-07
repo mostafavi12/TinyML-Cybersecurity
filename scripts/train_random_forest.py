@@ -14,7 +14,7 @@ from common.utils import plot_confusion_matrix
 from common.utils import save_metric
 
 from common.utils import setup_logging
-setup_logging("RF_Tuned.log")
+setup_logging("RandomForest.log")
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 BASE_DIR = os.path.dirname(__file__)
@@ -24,8 +24,8 @@ os.makedirs(VIS_DIR, exist_ok=True)
 logging.info("[*] Loading TON_IoT dataset...")
 X, y, features = load_and_preprocess_data("./data/TON_IoT/Train_Test_datasets/Train_Test_Network_dataset/train_test_network.csv")
 
-logging.info("[*] Feature headers:", features)
-logging.info("[*] Sample data:\n", X[:5])
+logging.info("[*] Feature headers:%s", features)
+logging.info("[*] Sample data:\n%s", X[:5])
 
 # Split dataset
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
@@ -45,10 +45,10 @@ grid_search.fit(X_train, y_train)
 best_rf = grid_search.best_estimator_
 logging.info(f"Best Parameters: {grid_search.best_params_}")
 
-logging.info("[*] Evaluating Tuned Random Forest model...")
+logging.info("[*] Evaluating Random Forest model...")
 y_pred = best_rf.predict(X_test)
 accuracy = accuracy_score(y_test, y_pred)
-logging.info(f"Tuned RandomForest Test Accuracy: {accuracy:.4f}")
+logging.info(f"RandomForest Test Accuracy: {accuracy:.4f}")
 
 # Classification Report
 logging.info("\nClassification Report:")
@@ -57,11 +57,11 @@ logging.info(classification_report(y_test, y_pred, zero_division=0))
 # Confusion Matrix
 # Assuming y_test and y_pred are defined
 cm = confusion_matrix(y_test, y_pred)
-plot_confusion_matrix(cm, class_names=["Normal", "Anomaly"], filename=os.path.join(VIS_DIR, "confusion_matrix_rfTuned.png"))
+plot_confusion_matrix(cm, class_names=["Normal", "Anomaly"], filename=os.path.join(VIS_DIR, "confusion_matrix_rf.png"))
 
 # Save the best model
-joblib.dump(best_rf, "models/random_forest_tuned.pkl")
-logging.info("Tuned RandomForest model saved at models/random_forest_tuned.pkl")
+joblib.dump(best_rf, "models/random_forest.pkl")
+logging.info("RandomForest model saved at models/random_forest.pkl")
 
 # Save the report in a json file
-save_metric("Tuned RF", accuracy)
+save_metric("Random Forest", accuracy)

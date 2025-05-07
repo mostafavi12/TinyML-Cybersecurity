@@ -23,8 +23,8 @@ os.makedirs(VIS_DIR, exist_ok=True)
 logging.info("[*] Loading TON_IoT dataset...")
 X, y, features = load_and_preprocess_data("./data/TON_IoT/Train_Test_datasets/Train_Test_Network_dataset/train_test_network.csv")
 
-logging.info("[*] Feature headers:", features)
-logging.info("[*] Sample data:\n", X[:5])
+logging.info("[*] Feature headers: %s", features)
+logging.info("[*] Sample data:\n%s", X[:5])
 
 # Reshape input for CNN: [samples, features, 1]
 X = np.expand_dims(X, axis=-1)
