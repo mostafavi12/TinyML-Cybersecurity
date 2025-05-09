@@ -8,6 +8,13 @@ import matplotlib.pyplot as plt
 from sklearn.exceptions import UndefinedMetricWarning
 warnings.filterwarnings("ignore", category=UndefinedMetricWarning)
 
+def generate_model_name(base: str, model_type: str) -> str:
+    """
+    Generates a standardized model name for logs, metrics, and model saving.
+    Example: generate_model_name("CNN", "Deep") -> "CNN_Deep"
+    """
+    return f"{base}_{model_type}"
+
 def setup_logging(log_name="default", log_dir="logs", level=logging.INFO, tee_console=False):
     log_dir_path = os.path.join(os.path.dirname(__file__), "..", log_dir)
     os.makedirs(log_dir_path, exist_ok=True)
@@ -49,6 +56,32 @@ def save_metric(model_name, accuracy):
     with open(metrics_file, "w") as f:
         json.dump(data, f, indent=4)
 
+def plot_classification_metrics(precision, recall, f1, class_names, filename, title="Per-Class Metrics"):
+    BASE_DIR = os.path.dirname(__file__)
+    VIS_DIR = os.path.join(BASE_DIR, "..","visualizations")
+    os.makedirs(VIS_DIR, exist_ok=True)
+    
+    plot_file_path = os.path.join(VIS_DIR, filename)
+    
+    x = np.arange(len(class_names))
+    width = 0.25
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.bar(x - width, precision, width, label='Precision')
+    ax.bar(x, recall, width, label='Recall')
+    ax.bar(x + width, f1, width, label='F1-score')
+
+    ax.set_ylabel('Score')
+    ax.set_title(title)
+    ax.set_xticks(x)
+    ax.set_xticklabels(class_names, rotation=45, ha='right')
+    ax.set_ylim(0, 1)
+    ax.legend(loc='upper right')
+    fig.tight_layout()
+
+    plt.savefig(plot_file_path)
+    plt.close()
+
 
 def plot_confusion_matrix(cm, class_names, filename, title="Confusion Matrix"):
     BASE_DIR = os.path.dirname(__file__)
@@ -70,9 +103,6 @@ def plot_confusion_matrix(cm, class_names, filename, title="Confusion Matrix"):
         ylabel="True Label",
         xlabel="Predicted Label"
     )
-
-    #plt.setp(ax.get_xticklabels(), rotation=45, ha="right", fontsize=11)
-    #plt.setp(ax.get_yticklabels(), fontsize=11)
 
     plt.xticks(rotation=45, ha="right", fontsize=10)
     plt.yticks(fontsize=10)

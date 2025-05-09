@@ -1,25 +1,26 @@
 import pandas as pd
 import numpy as np
+import logging
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 import joblib
 
 def load_and_preprocess_data(file_path):
-    print(f"[*] Loading dataset from: {file_path}")
+    logging.info("")
+    logging.info(f"[*] Loading dataset from: {file_path}")
 
     # Load dataset
     df = pd.read_csv(file_path)
 
-    # Print dataset info
-    print("\n[*] Dataset Columns:", df.columns.tolist())
-    print("[*] Sample Rows:\n", df.head())
+    # Dataset info
+    logging.info("[*] Dataset Columns(%d): %s", df.columns.size, df.columns.tolist())
+    logging.info("[*] Sample Rows:\n%s", df.head())
 
-    # Select important features (update this as needed)
+    # Select important features
     selected_columns = ['duration', 'src_bytes', 'dst_bytes', 'src_pkts', 'dst_pkts', 'proto', 'label', 'type']
     df = df[selected_columns]
 
-    # Print info after column selection
-    print("\n[*] Selected Columns:", df.columns.tolist())
-    print("[*] Sample After Selection:\n", df.head())
+    logging.info("[*] Selected Columns: %s", df.columns.tolist())
+    logging.info("[*] Sample After Selection:\n%s", df.head())
 
     # Handle categorical data
     df['proto'] = df['proto'].astype('category').cat.codes
@@ -34,11 +35,11 @@ def load_and_preprocess_data(file_path):
     X = scaler.fit_transform(df[features])
     y = df['type_encoded']
 
-    # Save preprocessing tools for later use
+    # Save tools
     joblib.dump(scaler, './models/scaler.pkl')
     joblib.dump(le, './models/label_encoder.pkl')
 
-    print("\n[*] Final Input Shape:", X.shape)
-    print("[*] Final Labels Shape:", y.shape)
+    logging.info("[*] Final Input Shape: %s", X.shape)
+    logging.info("[*] Final Labels Shape: %s", y.shape)
 
-    return X, y, features, le
+    return X, y, features, le.classes_

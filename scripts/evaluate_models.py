@@ -1,101 +1,55 @@
-import joblib
-import numpy as np
-import tensorflow as tf
-import sys
 import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),'..')))
-from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
-from common.preprocessing import load_and_preprocess_data
 import json
 import matplotlib.pyplot as plt
+import numpy as np
 
-print("Loading TON_IoT dataset...")
-X, y, features, label_encoder = load_and_preprocess_data("./data/TON_IoT/Train_Test_datasets/Train_Test_Network_dataset/train_test_network.csv")
+# Directory containing all model metric JSON files
+METRICS_DIR = "./metrics"
 
-print("Feature headers:", features)
-print("Sample data:")
-print(X[:5])
+def load_metrics(metrics_dir):
+    models = {}
+    for filename in os.listdir(metrics_dir):
+        if filename.endswith(".json"):
+            model_name = filename.replace(".json", "")
+            with open(os.path.join(metrics_dir, filename), "r") as f:
+                data = json.load(f)
+                models[model_name] = data
+    return models
 
-# Load saved scaler and label encoder
-scaler = joblib.load("models/scaler.pkl")
-label_encoder = joblib.load("models/label_encoder.pkl")
+def plot_accuracy_comparison(models):
+    datasets = ["train", "test", "full"]
+    model_names = list(models.keys())
 
-print("Evaluating RandomForest model...")
-model_rf = joblib.load("models/random_forest.pkl")
-pred_rf = model_rf.predict(X)
-accuracy_rf = accuracy_score(y, pred_rf)
-print(f"RandomForest Accuracy: {accuracy_rf:.4f}")
+    # Data preparation
+    bar_width = 0.2
+    x = np.arange(len(model_names))
 
-# Print Confusion Matrix & Classification Report
-print("\n[RandomForest Confusion Matrix]")
-print(confusion_matrix(y, pred_rf))
+    fig, ax = plt.subplots(figsize=(12, 6))
 
-print("\n[RandomForest Classification Report]")
-print(classification_report(y, pred_rf, target_names=label_encoder.classes_))
+    for i, dataset in enumerate(datasets):
+        accuracies = [
+            models[model].get(f"{dataset}_accuracy", 0.0)
+            for model in model_names
+        ]
+        ax.bar(x + i * bar_width, accuracies, bar_width, label=f"{dataset.capitalize()}")
 
-print("Loading CNN TensorFlow Lite model...")
-interpreter = tf.lite.Interpreter(model_path="models/cnn_model.tflite")
-interpreter.allocate_tensors()
+    ax.set_xlabel("Model")
+    ax.set_ylabel("Accuracy")
+    ax.set_title("Accuracy Comparison of Models")
+    ax.set_xticks(x + bar_width)
+    ax.set_xticklabels(model_names, rotation=45, ha="right")
+    ax.legend()
+    ax.grid(True, linestyle="--", alpha=0.6)
 
-input_details = interpreter.get_input_details()
-output_details = interpreter.get_output_details()
+    os.makedirs("visualizations", exist_ok=True)
+    plt.tight_layout()
+    plt.savefig("visualizations/model_accuracy_comparison.png")
+    plt.close()
 
-input_shape = input_details[0]['shape']
-print(f"CNN Model expects input shape: {input_shape}")
-
-# Reshape data accordingly if model expects 3D input (e.g., [batch_size, features, 1])
-if len(input_shape) == 3:
-    X_cnn = np.expand_dims(X, axis=-1)
-else:
-    X_cnn = X
-
-print("Evaluating CNN model...")
-correct_predictions = 0
-y_pred_cnn = []
-
-for i in range(len(X)):
-    input_data = np.expand_dims(X_cnn[i], axis=0).astype(np.float32)
-    interpreter.set_tensor(input_details[0]['index'], input_data)
-    interpreter.invoke()
-    output_data = interpreter.get_tensor(output_details[0]['index'])
-    pred = 1 if output_data[0][0] >= 0.5 else 0
-    y_pred_cnn.append(pred)
-    if pred == y[i]:
-        correct_predictions += 1
-
-accuracy_cnn = correct_predictions / len(y)
-print(f"CNN Model Accuracy: {accuracy_cnn:.4f}")
-
-# Print Confusion Matrix & Classification Report for CNN
-print("\n[CNN Confusion Matrix]")
-print(confusion_matrix(y, y_pred_cnn))
-
-print("\n[CNN Classification Report]")
-print(classification_report(y, y_pred_cnn, target_names=label_encoder.classes_))
-
-# Load logged metrics
-with open("metrics/metrics.json", "r") as f:
-    metrics = json.load(f)
-
-# Extract and sort
-models = list(metrics.keys())
-accuracies = [metrics[m]["accuracy"] for m in models]
-
-# Visualization
-os.makedirs("visualizations", exist_ok=True)
-
-plt.figure(figsize=(8, 5))
-bars = plt.bar(models, accuracies, color='mediumseagreen')
-plt.title("Model Accuracy Comparison")
-plt.ylabel("Accuracy")
-plt.ylim(0, 1.0)
-plt.grid(axis='y', linestyle='--', alpha=0.5)
-
-# Add % labels on top of bars
-for bar, acc in zip(bars, accuracies):
-    height = bar.get_height()
-    plt.text(bar.get_x() + bar.get_width()/2.0, height + 0.02, f"{acc*100:.1f}%", ha='center', va='bottom', fontsize=10)
-
-plt.tight_layout()
-plt.savefig("visualizations/accuracy_comparison.png")
-plt.show()
+if __name__ == "__main__":
+    models = load_metrics(METRICS_DIR)
+    if not models:
+        print("No metrics found in the directory.")
+    else:
+        plot_accuracy_comparison(models)
+        print("Saved: visualizations/model_accuracy_comparison.png")

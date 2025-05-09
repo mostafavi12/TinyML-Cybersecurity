@@ -1,70 +1,111 @@
-import logging
+import argparse
+import time
 import joblib
 import numpy as np
+import logging
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import (
+    accuracy_score,
+    classification_report,
+    confusion_matrix,
+    precision_recall_fscore_support
+)
+from sklearn.model_selection import train_test_split
+from sklearn.utils.class_weight import compute_class_weight
 import sys
 import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),'..')))
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split, GridSearchCV
-from sklearn.metrics import accuracy_score, classification_report
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from common.preprocessing import load_and_preprocess_data
+from common.utils import (
+    setup_logging,
+    save_metric,
+    plot_confusion_matrix,
+    plot_classification_metrics,
+    generate_model_name
+)
 
-from sklearn.metrics import confusion_matrix
-from common.utils import plot_confusion_matrix
-from common.utils import save_metric
 
-from common.utils import setup_logging
+# --- New: Define models via string keys
+def build_model(model_type):
+    config_map = {
+        "RF_Base": {"n_estimators": 50, "max_depth": 10},
+        "RF_ManyTrees": {"n_estimators": 200, "max_depth": 20},
+        "RF_DeepTrees": {"n_estimators": 100, "max_depth": None},
+        "RF_Conservative": {"n_estimators": 100, "min_samples_split": 10, "min_samples_leaf": 4},
+        "RF_Balanced": {"n_estimators": 100, "class_weight": "balanced"},
+    }
+    config = config_map.get(model_type, config_map["RF_Base"])
+    return RandomForestClassifier(**config), config
 
-setup_logging("RandomForest")
+# --- Main
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--model_type", type=str, default="RF_Base", help="Specify model type")
+    args = parser.parse_args()
 
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "1"
-os.environ['TERM'] = 'dumb'
+    model_type = args.model_type
+    model_name = generate_model_name("RandomForest", model_type)
+    setup_logging(model_name)
 
-logging.info("[*] Loading TON_IoT dataset...")
-X, y, features, label_encoder = load_and_preprocess_data("./data/TON_IoT/Train_Test_datasets/Train_Test_Network_dataset/train_test_network.csv")
+    logging.info(f"[*] Training RandomForest model: {model_type}")
 
-logging.info("[*] Feature headers:%s", features)
-logging.info("[*] Sample data:\n%s", X[:5])
+    # Load and preprocess
+    X, y, features, class_names = load_and_preprocess_data(
+        "./data/TON_IoT/Train_Test_datasets/train_test_network.csv"
+    )
 
-# Split dataset
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+    logging.info("[*] Feature headers: %s", features)
+    logging.info("[*] Sample data:\n%s", X[:5])
 
-logging.info("[*] Performing Hyperparameter Tuning for Random Forest...")
-param_grid = {
-    'n_estimators': [50, 100, 200],
-    'max_depth': [10, 20, None],
-    'min_samples_split': [2, 5, 10],
-    'min_samples_leaf': [1, 2, 4],
-    'max_features': ['sqrt', 'log2']
-}
+    # Train-test split
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
 
-grid_search = GridSearchCV(RandomForestClassifier(random_state=42), param_grid, cv=3, n_jobs=-1, verbose=2)
-grid_search.fit(X_train, y_train)
+    logging.info("Train shape: %s, Test shape: %s", X_train.shape, X_test.shape)
+    logging.info("Train label distribution: %s", np.unique(y_train, return_counts=True))
+    logging.info("Test label distribution: %s", np.unique(y_test, return_counts=True))
 
-best_rf = grid_search.best_estimator_
-logging.info(f"Best Parameters: {grid_search.best_params_}")
+    # Build model
+    model, config = build_model(model_type)
+    logging.info(f"Model config: {config}")
 
-logging.info("[*] Evaluating Random Forest model...")
-y_pred = best_rf.predict(X_test)
-accuracy = accuracy_score(y_test, y_pred)
-logging.info(f"RandomForest Test Accuracy: {accuracy:.4f}")
+    # Train model
+    start_train = time.time()
+    model.fit(X_train, y_train)
+    end_train = time.time()
 
-# Classification Report
-logging.info("\nClassification Report:")
-logging.info(classification_report(y_test, y_pred, zero_division=0))
+    training_duration = end_train - start_train
+    logging.info(f"Training completed in {training_duration:.2f} seconds")
 
-# Confusion Matrix
-# Assuming y_test and y_pred are defined
-cm = confusion_matrix(y_test, y_pred)
-# Confusion Matrix
-cm = confusion_matrix(y_test, y_pred)
-class_names = label_encoder.classes_
+    # Save model
+    joblib.dump(model, f"models/{model_name}.joblib")
 
-plot_confusion_matrix(cm, class_names, filename="confusion_matrix_rf.png")
+    # Inference timing
+    start_inf = time.time()
+    _ = model.predict([X_test[0]])
+    end_inf = time.time()
+    single_inf = end_inf - start_inf
+    logging.info(f"Single inference time: {single_inf:.6f} seconds")
 
-# Save the best model
-joblib.dump(best_rf, "models/random_forest.pkl")
-logging.info("RandomForest model saved at models/random_forest.pkl")
+    # Predictions
+    for split_name, X_eval, y_eval in [
+        ("train", X_train, y_train),
+        ("test", X_test, y_test),
+        ("all", X, y),
+    ]:
+        y_pred = model.predict(X_eval)
 
-# Save the report in a json file
-save_metric("Random Forest", accuracy)
+        acc = accuracy_score(y_eval, y_pred)
+        logging.info(f"[{split_name.upper()}] Accuracy: {acc:.4f}")
+        logging.info(f"[{split_name.upper()}] Classification report:\n{classification_report(y_eval, y_pred, target_names=class_names)}")
+
+        # Save metrics
+        save_metric(f"{model_name}_{split_name}", acc)
+
+        # Compute metrics
+        precision, recall, f1, _ = precision_recall_fscore_support(y_eval, y_pred, zero_division=0)
+
+        # Plot Confusion Matrix and per-class metrics
+        cm = confusion_matrix(y_eval, y_pred)
+        plot_confusion_matrix(cm, class_names=class_names, filename=f"confusion_matrix_{model_name}_{split_name}.png")
+        plot_classification_metrics(precision, recall, f1, class_names=class_names, filename=f"metrics_{model_name}_{split_name}.png")
