@@ -12,7 +12,7 @@ from sklearn.utils.class_weight import compute_class_weight
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from common.utils import (
-    setup_logging, plot_confusion_matrix, save_metric, generate_model_name, plot_classification_metrics
+    save_metrics_with_all_scores, setup_logging, plot_confusion_matrix, save_metric, generate_model_name, plot_classification_metrics
 )
 from common.preprocessing import load_and_preprocess_data
 
@@ -85,9 +85,9 @@ model.fit(X_train, y_train, epochs=10, batch_size=32, validation_split=0.2,
 
 # Evaluate
 for dataset_name, data, labels in [
-    ("train", X_train, y_train),
-    ("test", X_test, y_test),
-    ("all", X, y)
+    #("train", X_train, y_train),
+    ("test", X_test, y_test)#,
+    #("all", X, y)
 ]:
     logging.info(f"[*] Evaluating on {dataset_name} set...")
     y_pred_probs = model.predict(data)
@@ -95,7 +95,8 @@ for dataset_name, data, labels in [
 
     acc = accuracy_score(labels, y_pred)
     logging.info(f"{dataset_name.capitalize()} Accuracy: {acc:.4f}")
-    save_metric(f"{model_name}_{dataset_name}", acc)
+    # save_metric(f"{model_name}_{dataset_name}", acc)
+    save_metrics_with_all_scores(model_name, dataset_name, labels, y_pred)
 
     report = classification_report(labels, y_pred, target_names=class_labels, zero_division=0)
     logging.info(f"\nClassification Report ({dataset_name}):\n{report}")

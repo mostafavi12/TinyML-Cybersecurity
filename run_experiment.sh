@@ -1,11 +1,46 @@
 #!/bin/bash
+
+<<comment
 # Run Random Forest Base
 echo "Training RandomForest (Base)..."
-python3 scripts/train_random_forest.py --model_type Base > logs/RFExp_Base.log 2>&1
+python3 scripts/train_random_forest.py --model_type Base
+
+# Run Random Forest ManyTrees
+echo "Training RandomForest (ManyTrees)..."
+python3 scripts/train_random_forest.py --model_type ManyTrees
+
+# Run Random Forest DeepTrees
+echo "Training RandomForest (DeepTrees)..."
+python3 scripts/train_random_forest.py --model_type DeepTrees
+
+# Run Random Forest Conservative
+echo "Training RandomForest (Conservative)..."
+python3 scripts/train_random_forest.py --model_type Conservative
+
+# Run Random Forest Balanced
+echo "Training RandomForest (Balanced)..."
+python3 scripts/train_random_forest.py --model_type Balanced
+
+# Run CNN Deep
+echo "Training CNN (Base)..."
+python3 scripts/train_cnn.py --model_type Base
 
 # Run CNN Deep
 echo "Training CNN (Deep)..."
-python3 scripts/train_cnn.py --model_type Base
+python3 scripts/train_cnn.py --model_type Deep
+
+# Run CNN Wider
+echo "Training CNN (Wider)..."
+python3 scripts/train_cnn.py --model_type Wider
+
+# Run CNN Shallow
+echo "Training CNN (Shallow)..."
+python3 scripts/train_cnn.py --model_type Shallow
+
+# Run CNN Tiny
+echo "Training CNN (Tiny)..."
+python3 scripts/train_cnn.py --model_type Tiny
+comment
 
 echo "Evaluating Models..."
-python3 scripts/evaluate_models.py > logs/EvaluationExp.log 2>&1
+python3 scripts/evaluate_models.py

@@ -18,6 +18,7 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from common.preprocessing import load_and_preprocess_data
 from common.utils import (
+    save_metrics_with_all_scores,
     setup_logging,
     save_metric,
     plot_confusion_matrix,
@@ -41,14 +42,14 @@ def build_model(model_type):
 # --- Main
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model_type", type=str, default="RF_Base", help="Specify model type")
+    parser.add_argument("--model_type", type=str, default="Base", help="Specify model type")
     args = parser.parse_args()
 
     model_type = args.model_type
-    model_name = generate_model_name("RandomForest", model_type)
+    model_name = generate_model_name("RF", model_type)
     setup_logging(model_name)
 
-    logging.info(f"[*] Training RandomForest model: {model_type}")
+    logging.info(f"[*] Training RF model: {model_type}")
 
     # Load and preprocess
     X, y, features, class_names = load_and_preprocess_data(
@@ -89,9 +90,9 @@ if __name__ == "__main__":
 
     # Predictions
     for split_name, X_eval, y_eval in [
-        ("train", X_train, y_train),
-        ("test", X_test, y_test),
-        ("all", X, y),
+        #("train", X_train, y_train),
+        ("test", X_test, y_test)#,
+        #("all", X, y),
     ]:
         y_pred = model.predict(X_eval)
 
@@ -100,7 +101,7 @@ if __name__ == "__main__":
         logging.info(f"[{split_name.upper()}] Classification report:\n{classification_report(y_eval, y_pred, target_names=class_names)}")
 
         # Save metrics
-        save_metric(f"{model_name}_{split_name}", acc)
+        save_metrics_with_all_scores(model_name, split_name, y_eval, y_pred)
 
         # Compute metrics
         precision, recall, f1, _ = precision_recall_fscore_support(y_eval, y_pred, zero_division=0)

@@ -5,8 +5,11 @@ import warnings
 import logging
 import numpy as np
 import matplotlib.pyplot as plt
+#from sklearn.base import accuracy_score
 from sklearn.exceptions import UndefinedMetricWarning
 warnings.filterwarnings("ignore", category=UndefinedMetricWarning)
+# Add this wherever you log the final evaluation (after each split)
+from sklearn.metrics import precision_score, recall_score, f1_score, accuracy_score
 
 def generate_model_name(base: str, model_type: str) -> str:
     """
@@ -41,6 +44,18 @@ def setup_logging(log_name="default", log_dir="logs", level=logging.INFO, tee_co
 
     logging.info("=== Logging Initialized ===")
 
+def save_metrics_with_all_scores(model_name, split_name, y_true, y_pred):
+    acc = accuracy_score(y_true, y_pred)
+    prec = precision_score(y_true, y_pred, average='weighted', zero_division=0)
+    rec = recall_score(y_true, y_pred, average='weighted', zero_division=0)
+    f1 = f1_score(y_true, y_pred, average='weighted', zero_division=0)
+    save_metric(f"{model_name}_{split_name}", {
+        "accuracy": acc,
+        "precision": prec,
+        "recall": rec,
+        "f1": f1
+    })
+
 def save_metric(model_name, accuracy):
     os.makedirs("metrics", exist_ok=True)
     metrics_file = "metrics/metrics.json"
@@ -51,11 +66,11 @@ def save_metric(model_name, accuracy):
     else:
         data = {}
 
-    data[model_name] = {"accuracy": accuracy}
+    data[model_name] = {"metrics": accuracy}
 
     with open(metrics_file, "w") as f:
         json.dump(data, f, indent=4)
-
+        
 def plot_classification_metrics(precision, recall, f1, class_names, filename, title="Per-Class Metrics"):
     BASE_DIR = os.path.dirname(__file__)
     VIS_DIR = os.path.join(BASE_DIR, "..","visualizations")
