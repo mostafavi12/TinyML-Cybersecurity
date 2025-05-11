@@ -1,13 +1,16 @@
 import argparse
 import logging
+import sys
 import numpy as np
 import tensorflow as tf
 import joblib
 import os
 import time
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score, classification_report
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 from sklearn.utils.class_weight import compute_class_weight
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from common.utils import (
     setup_logging,
     plot_confusion_matrix,
@@ -71,12 +74,20 @@ def build_model(model_type, input_shape):
         model.add(tf.keras.layers.MaxPooling1D(pool_size=2))
         model.add(tf.keras.layers.Flatten())
         model.add(tf.keras.layers.Dense(64, activation="relu"))
+    elif model_type == "Tiny":
+        model.add(tf.keras.layers.Conv1D(8, 3, activation='relu'))
+        model.add(tf.keras.layers.Flatten())
     elif model_type == "Deep":
         model.add(tf.keras.layers.Conv1D(64, 3, activation="relu"))
         model.add(tf.keras.layers.Conv1D(128, 3, activation="relu"))
         model.add(tf.keras.layers.MaxPooling1D(pool_size=2))
         model.add(tf.keras.layers.Flatten())
         model.add(tf.keras.layers.Dense(128, activation="relu"))
+    elif model_type == "Wider":
+        model.add(tf.keras.layers.Conv1D(128, 3, activation='relu'))
+        model.add(tf.keras.layers.MaxPooling1D(pool_size=2))
+        model.add(tf.keras.layers.Flatten())
+        model.add(tf.keras.layers.Dense(128, activation='relu'))
     elif model_type == "Shallow":
         model.add(tf.keras.layers.Conv1D(16, 3, activation="relu"))
         model.add(tf.keras.layers.MaxPooling1D(pool_size=2))
@@ -143,7 +154,7 @@ def evaluate_model(X_eval, y_eval, split_name):
     precision = [report[str(i)]['precision'] for i in range(len(class_names))]
     recall = [report[str(i)]['recall'] for i in range(len(class_names))]
     f1 = [report[str(i)]['f1-score'] for i in range(len(class_names))]
-    plot_classification_metrics(y_eval, y_pred, class_names, metrics_file, precision, recall, f1)
+    plot_classification_metrics(precision, recall, f1, class_names, metrics_file, title=f"Per-Class Metrics - {model_name} ({split_name})")
 
     return accuracy, precision, recall, f1
 
@@ -159,10 +170,9 @@ acc_test, prec_test, rec_test, f1_test = evaluate_model(X_test, y_test, "test")
 # ------------------------------
 save_metrics_with_all_scores(
     model_name=model_name,
-    accuracy=acc_test,
-    precision=np.mean(prec_test),
-    recall=np.mean(rec_test),
-    f1=np.mean(f1_test),
+    split_name="Test",
+    y_true=y_test,
+    y_pred=np.argmax(model.predict(X_test), axis=1)
 )
 
 # ------------------------------

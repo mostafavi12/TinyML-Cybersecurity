@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# <<comment
+#<<comment
 # Run Random Forest Base
 echo "Training RandomForest (Base)..."
 python3 scripts/train_random_forest.py --model_type Base
@@ -21,9 +21,13 @@ python3 scripts/train_random_forest.py --model_type Conservative
 echo "Training RandomForest (Balanced)..."
 python3 scripts/train_random_forest.py --model_type Balanced
 
-# Run CNN Deep
+# Run CNN Base
 echo "Training CNN (Base)..."
 python3 scripts/train_cnn.py --model_type Base
+
+# Run CNN Tiny
+echo "Training CNN (Tiny)..."
+python3 scripts/train_cnn.py --model_type Tiny
 
 # Run CNN Deep
 echo "Training CNN (Deep)..."
@@ -37,10 +41,16 @@ python3 scripts/train_cnn.py --model_type Wider
 echo "Training CNN (Shallow)..."
 python3 scripts/train_cnn.py --model_type Shallow
 
-# Run CNN Tiny
-echo "Training CNN (Tiny)..."
-python3 scripts/train_cnn.py --model_type Tiny
-# comment
+# Run CNN Dropout
+echo "Training CNN (Dropout)..."
+python3 scripts/train_cnn.py --model_type Dropout
+
+#comment
+# Run CNN BatchNorm
+echo "Training CNN (BatchNorm)..."
+python3 scripts/train_cnn.py --model_type BatchNorm
+
+
 
 echo "Evaluating Models..."
 python3 scripts/evaluate_models.py
