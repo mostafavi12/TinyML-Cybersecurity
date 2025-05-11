@@ -1,0 +1,45 @@
+# Python cache and environments
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.ipynb_checkpoints/
+
+# output files
+*.tflite
+*.elf
+*.o
+
+.venv/
+env/
+venv/
+myEenv/
+data/
+logs/
+models/
+visualizations/
+metrics/
+
+# Model artifacts
+/models/*.pkl
+/models/*.tflite
+/models/*.h5
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs and temp
+*.log
+*.tmp
+*.bak
+experiment_results.txt
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# VS Code
+.vscode/
+
+# Environment files
+*.env
