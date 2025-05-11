@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#<<comment
+# <<comment
 # Run Random Forest Base
 echo "Training RandomForest (Base)..."
 python3 scripts/train_random_forest.py --model_type Base
@@ -45,7 +45,8 @@ python3 scripts/train_cnn.py --model_type Shallow
 echo "Training CNN (Dropout)..."
 python3 scripts/train_cnn.py --model_type Dropout
 
-#comment
+# comment
+
 # Run CNN BatchNorm
 echo "Training CNN (BatchNorm)..."
 python3 scripts/train_cnn.py --model_type BatchNorm

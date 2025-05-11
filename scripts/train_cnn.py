@@ -185,18 +185,44 @@ model.save(f"models/{model_name}.keras")
 # ------------------------------
 def representative_dataset_gen():
     for i in range(min(100, len(X_train))):
+        # Ensure input shape matches (1, 6, 1) and dtype is float32
         yield [X_train[i:i+1].astype(np.float32)]
 
+# Initialize converter
 converter = tf.lite.TFLiteConverter.from_keras_model(model)
+
+# Set optimization and representative dataset
 converter.optimizations = [tf.lite.Optimize.DEFAULT]
 converter.representative_dataset = representative_dataset_gen
+
+# Force full integer quantization for ops and tensors
 converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
 converter.inference_input_type = tf.int8
 converter.inference_output_type = tf.int8
 
+# Enforce integer-only weights
+converter.experimental_new_converter = True
+
+# Convert and save
 tflite_model = converter.convert()
 int8_model_path = f"models/{model_name}_int8.tflite"
 with open(int8_model_path, "wb") as f:
     f.write(tflite_model)
 
 logging.info(f"Fully Integer Quantized TFLite model saved to {int8_model_path}")
+
+def convert_tflite_to_c_array(tflite_path, output_path, array_name="model_data"):
+    with open(tflite_path, "rb") as f:
+        data = f.read()
+
+    with open(output_path, "w") as f:
+        f.write(f"const unsigned char {array_name}[] = {{\n")
+        for i in range(0, len(data), 12):
+            line = ", ".join(f"0x{byte:02x}" for byte in data[i:i+12])
+            f.write(f"  {line},\n")
+        f.write("};\n")
+        f.write(f"const unsigned int {array_name}_len = {len(data)};\n")
+
+# convert quantized model into C arrays
+C_model_path = f"models/{model_name}_int8.cc"
+convert_tflite_to_c_array(int8_model_path, C_model_path, "cnn_model")
