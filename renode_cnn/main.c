@@ -37,7 +37,7 @@ __attribute__((used))
 int main(void) {
     uart_puts("Running mock inference...\n");
 
-    int score = predict(input_features);
+    int score = predict((const int* )input_features);
 
     uart_puts("Score (x1000): 0x");
     uart_put_hex(score);

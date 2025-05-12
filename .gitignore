@@ -19,6 +19,7 @@ logs/
 models/
 visualizations/
 metrics/
+tflite-micro/
 
 # Model artifacts
 /models/*.pkl
