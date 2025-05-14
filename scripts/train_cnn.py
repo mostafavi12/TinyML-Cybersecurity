@@ -44,6 +44,13 @@ X, y, features, class_names = load_and_preprocess_data(
 X = np.expand_dims(X, axis=-1)  # Shape: (samples, 6, 1)
 
 # ------------------------------
+# Print Index to Class Name Mapping
+# ------------------------------
+logging.info("[*] Class Index to Traffic Type Mapping:")
+for idx, name in enumerate(class_names):
+    logging.info(f"    {idx}: {name}")
+
+# ------------------------------
 # Train-Test Split
 # ------------------------------
 X_train, X_test, y_train, y_test = train_test_split(
@@ -133,7 +140,14 @@ logging.info(f"Training completed in {train_duration:.2f} seconds.")
 # Evaluation Helper
 # ------------------------------
 def evaluate_model(X_eval, y_eval, split_name):
+    start_pred_time = time.time()
     y_pred_probs = model.predict(X_eval)
+    pred_duration = time.time() - start_pred_time
+
+    per_sample_time = pred_duration / len(X_eval)
+    logging.info(f"[{split_name}] Prediction time: {pred_duration:.4f} seconds")
+    logging.info(f"[{split_name}] Time per sample: {per_sample_time * 1000:.4f} ms")
+
     y_pred = np.argmax(y_pred_probs, axis=1)
     accuracy = accuracy_score(y_eval, y_pred)
     report = classification_report(y_eval, y_pred, output_dict=True, zero_division=0)
@@ -164,6 +178,15 @@ def evaluate_model(X_eval, y_eval, split_name):
 acc_test, prec_test, rec_test, f1_test = evaluate_model(X_test, y_test, "test")
 # acc_train, prec_train, rec_train, f1_train = evaluate_model(X_train, y_train, "train")
 # acc_all, prec_all, rec_all, f1_all = evaluate_model(X, y, "all")
+
+
+start_pred_time = time.time()
+y_pred_probs = model.predict(X_test[0])
+pred_duration = time.time() - start_pred_time
+
+logging.info(f"Prediction time: {pred_duration:.4f} seconds")
+logging.info(X_test[0])
+
 
 # ------------------------------
 # Save Metrics
