@@ -21,7 +21,7 @@ INCLUDES = \
  -I$(INCLUDE_DIR)/tensorflow/lite/core/api \
  -I$(INCLUDE_DIR)/tensorflow/lite/schema \
  -I$(INCLUDE_DIR)/tensorflow/lite/micro \
- -I$(INCLUDE_DIR)/tensorflow/lite/kernels \
+ -I$(INCLUDE_DIR)/tensorflow/lite/micro/kernels \
  -I/home/ahmad/flatbuffers-1.12.0/include
 
 # Source files
@@ -31,16 +31,20 @@ C_SRCS += \
 
 CPP_SRCS := \
 		$(SRC_DIR)/main.cc \
-		$(SRC_DIR)/micro_allocator.cc \
-		$(SRC_DIR)/memory_helpers.cc \
 		$(SRC_DIR)/tensorflow/lite/core/api/error_reporter.cc \
 		$(SRC_DIR)/tensorflow/lite/core/api/flatbuffer_conversions.cc \
+		$(SRC_DIR)/tensorflow/lite/micro/all_ops_resolver.cc \
+		$(SRC_DIR)/tensorflow/lite/micro/micro_allocator.cc \
+		$(SRC_DIR)/tensorflow/lite/micro/micro_interpreter.cc \
+		$(SRC_DIR)/tensorflow/lite/micro/memory_helpers.cc \
 		$(SRC_DIR)/tensorflow/lite/micro/debug_log.cc \
+		$(SRC_DIR)/tensorflow/lite/micro/micro_graph.cc \
 		$(SRC_DIR)/tensorflow/lite/micro/memory_planner/greedy_memory_planner.cc \
 		$(SRC_DIR)/tensorflow/lite/micro/simple_memory_allocator.cc \
 		$(SRC_DIR)/tensorflow/lite/micro/micro_error_reporter.cc \
 		$(SRC_DIR)/tensorflow/lite/micro/micro_string.cc
-		   
+
+CPP_SRCS += $(wildcard $(SRC_DIR)/tensorflow/lite/micro/kernels/*.cc)		   
 
 CPP_OBJS := $(patsubst %.cc, $(BUILD_DIR)/%.o, $(CPP_SRCS))
 C_OBJS := $(patsubst %.c, $(BUILD_DIR)/%.o, $(C_SRCS))

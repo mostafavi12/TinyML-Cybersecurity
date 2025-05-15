@@ -1,57 +1,29 @@
 #!/bin/bash
 
-# <<comment
-# Run Random Forest Base
-echo "Training RandomForest (Base)..."
-python3 scripts/train_random_forest.py --model_type Base
 
-# Run Random Forest ManyTrees
-echo "Training RandomForest (ManyTrees)..."
-python3 scripts/train_random_forest.py --model_type ManyTrees
+# Updated run_experiment.sh
+set -e
 
-# Run Random Forest DeepTrees
-echo "Training RandomForest (DeepTrees)..."
-python3 scripts/train_random_forest.py --model_type DeepTrees
+# 1. Prepare data only once
+python3 common/prepare_data.py
 
-# Run Random Forest Conservative
-echo "Training RandomForest (Conservative)..."
-python3 scripts/train_random_forest.py --model_type Conservative
+<<comment
+# 2. Run all RF models
+for model_type in Base ManyTrees DeepTrees Conservative Balanced; do
+    echo "[*] Training Random Forest model: $model_type"
+    python3 scripts/train_random_forest.py --model_type $model_type
+done
 
-# Run Random Forest Balanced
-echo "Training RandomForest (Balanced)..."
+# 3. Run all CNN models
+for model_type in Base Tiny Deep Wider Shallow Dropout BatchNorm; do
+    echo "[*] Training CNN model: $model_type"
+    python3 scripts/train_cnn.py --model_type $model_type
+done
+comment 
+
 python3 scripts/train_random_forest.py --model_type Balanced
 
-# Run CNN Base
-echo "Training CNN (Base)..."
-python3 scripts/train_cnn.py --model_type Base
-
-# Run CNN Tiny
-echo "Training CNN (Tiny)..."
-python3 scripts/train_cnn.py --model_type Tiny
-
-# Run CNN Deep
-echo "Training CNN (Deep)..."
-python3 scripts/train_cnn.py --model_type Deep
-
-# Run CNN Wider
-echo "Training CNN (Wider)..."
-python3 scripts/train_cnn.py --model_type Wider
-
-# Run CNN Shallow
-echo "Training CNN (Shallow)..."
-python3 scripts/train_cnn.py --model_type Shallow
-
-# Run CNN Dropout
-echo "Training CNN (Dropout)..."
-python3 scripts/train_cnn.py --model_type Dropout
-
-# comment
-
-# Run CNN BatchNorm
-echo "Training CNN (BatchNorm)..."
-python3 scripts/train_cnn.py --model_type BatchNorm
-
-
+# python3 scripts/train_cnn.py --model_type Base
 
 echo "Evaluating Models..."
-python3 scripts/evaluate_models.py
+# python3 scripts/evaluate_models.py
