@@ -1,0 +1,11 @@
+# renode_script.resc
+# renode_script.resc
+
+using sysbus
+mach create "tinyml_riscv"
+
+machine LoadPlatformDescription @/home/ahmad/projects/TinyML-Cybersecurity/renode/riscv_virt.repl
+sysbus LoadELF @/build/rf_model.elf
+
+showAnalyzer sysbus.uart0
+start

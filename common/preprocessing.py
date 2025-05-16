@@ -1,4 +1,3 @@
-# Updated preprocessing.py to compute and compare SHAP values across all features and top N features
 import pandas as pd
 import numpy as np
 import logging
@@ -7,7 +6,6 @@ from sklearn.ensemble import RandomForestClassifier
 from boruta import BorutaPy
 import joblib
 import json
-import shap
 import matplotlib.pyplot as plt
 import os
 
@@ -109,38 +107,4 @@ def load_and_preprocess_data(file_path):
     logging.info("[*] Final Input Shape: %s", X.shape)
     logging.info("[*] Final Labels Shape: %s", y.shape)
 
-    # === SHAP Feature Importance on All Features ===
-    try:
-        logging.info("[*] Computing SHAP values for all features (pre-selection)...")
-        os.makedirs("./visualizations", exist_ok=True)
-        rf_shap = RandomForestClassifier(n_estimators=20, max_depth=5, random_state=42)
-        rf_shap.fit(X_full, y_full)
-        explainer = shap.TreeExplainer(rf_shap)
-        shap_values = explainer.shap_values(X_full)
-
-        # Summary plot for all features
-        plt.figure()
-        shap.summary_plot(shap_values, features=X_full, feature_names=feature_cols, show=False)
-        plt.tight_layout()
-        plt.savefig("./visualizations/shap_summary_all_features.png")
-        logging.info("[*] SHAP summary plot saved: shap_summary_all_features.png")
-
-        # Compute mean absolute SHAP values per feature
-        mean_shap = np.abs(shap_values).mean(axis=1).mean(axis=0)
-        shap_importance = pd.DataFrame({"feature": feature_cols, "importance": mean_shap})
-        shap_importance = shap_importance.sort_values(by="importance", ascending=False)
-
-        # Save top N SHAP features plot
-        top_n = 10
-        top_features = shap_importance.head(top_n)['feature'].tolist()
-        top_indices = [feature_cols.index(f) for f in top_features]
-        plt.figure()
-        shap.summary_plot(np.array(shap_values)[:, :, top_indices], features=X_full[:, top_indices], feature_names=top_features, show=False)
-        plt.tight_layout()
-        plt.savefig("./visualizations/shap_summary_top_features.png")
-        logging.info("[*] SHAP summary for top %d features saved: shap_summary_top_features.png", top_n)
-
-    except Exception as e:
-        logging.warning(f"[!] SHAP computation failed: {e}")
-
-    return X, y, selected_features, le.classes_
+    return X, y.values, selected_features, le.classes_

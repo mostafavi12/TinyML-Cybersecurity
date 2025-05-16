@@ -4,7 +4,11 @@ using sysbus
 mach create "tinyml_riscv"
 
 machine LoadPlatformDescription @/home/ahmad/projects/TinyML-Cybersecurity/renode/riscv_virt.repl
-sysbus LoadELF @/home/ahmad/projects/TinyML-Cybersecurity/renode_cnn/firmware.elf
+sysbus LoadELF @/home/ahmad/projects/TinyML-Cybersecurity/renode_rf/build/rf_model.elf
 
 showAnalyzer sysbus.uart0
+
+machine EnableProfiler "metrics.dump"
+
+# Start simulation and stop after ~5 seconds of emulated time
 start

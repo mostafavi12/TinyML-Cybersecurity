@@ -104,7 +104,7 @@ sample_idx = 0
 sample_pred = model.predict([X_test[sample_idx]])[0]
 logging.info(f"[*] Single sample prediction: {class_names[sample_pred]}")
 
-# === Export to C header using micromlgen ===
+# === Export to C++ header using micromlgen ===
 try:
     from micromlgen import port
 
